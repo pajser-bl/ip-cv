@@ -1,0 +1,146 @@
+{
+  "realm": "ip_cv_realm",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "ROLE_STUDENT" },
+      { "name": "ROLE_COMPANY" },
+      { "name": "ROLE_FACULTY" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "ip_cv_api",
+      "enabled": true,
+
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "ip_cv_student",
+      "enabled": true,
+
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"]
+    },
+    {
+      "clientId": "ip_cv_company",
+      "enabled": true,
+
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"]
+    },
+    {
+      "clientId": "ip_cv_faculty",
+      "enabled": true,
+
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-ip_cv_api",
+      "enabled": true,
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users"]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "username": "faculty",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Faculty",
+      "lastName": "Admin",
+      "email": "faculty@ipcv.com",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }],
+      "realmRoles": ["ROLE_FACULTY"]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "username": "marko.markovic@ipcv.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Marko",
+      "lastName": "Markovic",
+      "email": "marko.markovic@ipcv.com",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": true }],
+      "realmRoles": ["ROLE_STUDENT"]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "username": "petar.petrovic@ipcv.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Petar",
+      "lastName": "Petrovic",
+      "email": "petar.petrovic@ipcv.com",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": true }],
+      "realmRoles": ["ROLE_STUDENT"]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "username": "jovan.jovanovic@ipcv.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Jovan",
+      "lastName": "Jovanovic",
+      "email": "jovan.jovanovic@ipcv.com",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": true }],
+      "realmRoles": ["ROLE_STUDENT"]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "username": "milos.milosevic@ipcv.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Milos",
+      "lastName": "Milosevic",
+      "email": "milos.milosevic@ipcv.com",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": true }],
+      "realmRoles": ["ROLE_STUDENT"]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "username": "admin@fat-cat.net",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Fat Cat",
+      "email": "admin@fat-cat.net",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }],
+      "realmRoles": ["ROLE_COMPANY"]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "username": "admin@aurora.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Aurora",
+      "email": "admin@aurora.com",
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }],
+      "realmRoles": ["ROLE_COMPANY"]
+    }
+  ]
+}

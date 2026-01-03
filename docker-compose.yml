@@ -1,0 +1,99 @@
+version: "3.8"
+services:
+  db:
+    build: ./db
+    container_name: ip_cv_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ip_cv
+    volumes:
+      - ip_cv_db:/var/lib/postgresql/data
+    networks:
+      - ip_cv_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ip_cv_pgadmin
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ipcv.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - ip_cv_pgadmin:/var/lib/postgresql/data
+    networks:
+      - ip_cv_net
+
+  keycloak:
+    build: ./keycloak
+    container_name: ip_cv_keycloak
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB: postgres
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: admin
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KC_TRANSACTION_MANAGER_ENABLE_RECOVERY: "true"
+
+      KC_HOSTNAME: localhost
+      KC_HTTP_PORT: 8080
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    networks:
+      - ip_cv_net
+    depends_on:
+      - db
+
+#  api:
+#    build: ./api
+#    container_name: ip_cv_api
+#    restart: always
+#    ports:
+#      - "8081:8080"
+#    environment:
+#      DATABASE_URL: postgresql://admin:admin@db:5432/ip_cv
+#    networks:
+#      - ip_cv_net
+#    depends_on:
+#      - db
+#      - keycloak
+#
+#  backoffice:
+#    build: ./backoffice
+#    container_name: ip_cv_backoffice
+#    restart: always
+#    ports:
+#      - "4200:80"
+#    networks:
+#      - ip_cv_net
+#    environment:
+#      - NODE_ENV=production
+#      - KEYCLOAK_URL=http://keycloak:8080/auth
+#      - KEYCLOAK_REALM=ip_cv_realm
+#      - KEYCLOAK_CLIENT_ID=
+#    depends_on:
+#      - db
+#      - keycloak
+##      - api
+
+
+networks:
+   ip_cv_net:
+
+volumes:
+  ip_cv_db:
+  ip_cv_pgadmin:
+  ip_cv_keycloak:
+
