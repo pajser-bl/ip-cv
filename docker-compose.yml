@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   db:
-    build: ./db
+    build: db
     container_name: ip_cv_db
     restart: always
     ports:
@@ -30,7 +30,7 @@ services:
       - ip_cv_net
 
   keycloak:
-    build: ./keycloak
+    build: keycloak
     container_name: ip_cv_keycloak
     restart: always
     ports:

@@ -21,7 +21,7 @@ WORKDIR /usr/share/nginx/html
 
 COPY --from=builder /app/dist/backoffice/browser /usr/share/nginx/html
 
-COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
