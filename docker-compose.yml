@@ -1,11 +1,10 @@
-version: "3.8"
 services:
   db:
     build: db
     container_name: ip_cv_db
     restart: always
     ports:
-      - "5432:5432"
+      - "15432:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -20,7 +19,7 @@ services:
     container_name: ip_cv_pgadmin
     restart: always
     ports:
-      - "8888:80"
+      - "18888:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@ipcv.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -31,10 +30,11 @@ services:
 
   keycloak:
     build: keycloak
+    image: ip_cv_keycloak
     container_name: ip_cv_keycloak
     restart: always
     ports:
-      - "8080:8080"
+      - "18080:8080"
     environment:
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
       KC_DB: postgres
@@ -95,5 +95,4 @@ networks:
 volumes:
   ip_cv_db:
   ip_cv_pgadmin:
-  ip_cv_keycloak:
 

@@ -21,8 +21,8 @@ WORKDIR /opt/keycloak
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY --from=builder /opt/keycloak/data/import/realm-export.json /opt/keycloak/data/import/
+COPY --chmod=755 kc-init.sh /opt/keycloak/kc-init.sh
 
 EXPOSE 8080
 
-#ENTRYPOINT ["./bin/kc.sh", "start", "--optimized", "--import-realm"]
-ENTRYPOINT ["./bin/kc.sh", "start", "--import-realm"]
+ENTRYPOINT ["/bin/bash", "-lc", "./bin/kc.sh start-dev --import-realm & /opt/keycloak/kc-init.sh; wait -n"]
