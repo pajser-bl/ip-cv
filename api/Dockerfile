@@ -10,7 +10,7 @@ COPY build.gradle .
 COPY settings.gradle .
 COPY gradle.properties .
 
-RUN chmod +x ./gradlew && ./gradlew --no-daemon build -x test || true
+RUN chmod +x ./gradlew && ./gradlew --no-daemon build -x test
 
 COPY . .
 

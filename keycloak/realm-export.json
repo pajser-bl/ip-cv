@@ -29,8 +29,8 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
 
-      "redirectUris": ["http://localhost:4200/*"],
-      "webOrigins": ["http://localhost:4200"]
+      "redirectUris": ["http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:5173"]
     },
     {
       "clientId": "ip_cv_company",
