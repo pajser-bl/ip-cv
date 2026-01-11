@@ -3,7 +3,7 @@ import Layout from "./app/Layout"
 import MyInternshipsPage from "./pages/MyInternshipsPage";
 import InternshipsPage from "./pages/InternshipsPage"
 import InternshipDetailsPage from "./pages/InternshipDetailsPage"
-// import ProfilePage from "./pages/ProfilePage"
+import ProfilePage from "./pages/ProfilePage"
 
 function App() {
 
@@ -14,7 +14,7 @@ function App() {
                 <Route path="/my-internships" element={<MyInternshipsPage/>}/>
                 <Route path="/internships" element={<InternshipsPage/>}/>
                 <Route path="/internships/:id" element={<InternshipDetailsPage/>}/>
-                {/*<Route path="/profile" element={<ProfilePage/>}/>*/}
+                <Route path="/profile" element={<ProfilePage/>}/>
             </Route>
         </Routes>
     )
