@@ -12,15 +12,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/students")
 public class StudentMeController {
+
     @GetMapping("/me")
     public Map<String, Object> me(@AuthenticationPrincipal Jwt jwt, Authentication authentication) {
         return Map.of(
                 "sub", jwt.getSubject(),
-                "authorities", authentication.getAuthorities().toString()
-//                "username", jwt.getClaim("preferred_username"),
-//                "email", jwt.getClaim("email"),
-//                "firstName", jwt.getClaim("given_name"),
-//                "lastName", jwt.getClaim("family_name")
+                "username", jwt.getClaim("preferred_username"),
+                "email", jwt.getClaim("email"),
+                "firstName", jwt.getClaim("given_name"),
+                "lastName", jwt.getClaim("family_name")
         );
     }
 }
