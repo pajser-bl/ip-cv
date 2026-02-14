@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {
     Container,
     Typography,
@@ -9,33 +9,51 @@ import {
     Select,
     MenuItem,
     Stack,
-    Pagination,
     CircularProgress
 } from "@mui/material";
 import InternshipCard from "../components/InternshipCard";
-import {getInternshipsPaged, type Internship, type PageDto} from "../api/internshipsApi.ts";
-import {useDebouncedValue} from "../hooks/useDebouncedValue.ts";
+import {getInternshipsPaged, type Internship, type PageDto} from "../api/internshipsApi";
+import {useDebouncedValue} from "../hooks/useDebouncedValue";
 
 const PAGE_SIZE = 12;
 
 export default function InternshipsPage() {
+    const [items, setItems] = useState<Internship[]>([]);
     const [pageData, setPageData] = useState<PageDto<Internship> | null>(null);
+
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const [q, setQ] = useState("");
     const debouncedQ = useDebouncedValue(q);
     const [tech, setTech] = useState<string>("ALL");
-    const [pageUi, setPageUi] = useState(1); // 1-based for MUI Pagination
+    const [page, setPage] = useState(0);
+
+    const sentinelRef = useRef<HTMLDivElement>(null);
+    const loadingRef = useRef(false);
+    const hasMoreRef = useRef(true);
+
+    const hasMore = pageData ? page < pageData?.totalPages - 1 : true;
+
+    useEffect(() => {
+        loadingRef.current = loading;
+    }, [loading]);
+
+    useEffect(() => {
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
 
     const techOptions = useMemo(() => {
         const set = new Set<string>();
         for (const i of pageData?.items ?? []) for (const t of i.technologies ?? []) set.add(t);
         return Array.from(set).sort((a, b) => a.localeCompare(b));
-    }, [pageData]);
+    }, [items]);
 
     useEffect(() => {
-        setPageUi(1);
+        setItems([]);
+        setPageData(null);
+        setPage(0);
+        setError(null);
     }, [debouncedQ, tech]);
 
     useEffect(() => {
@@ -47,7 +65,7 @@ export default function InternshipsPage() {
                 setError(null);
 
                 const data = await getInternshipsPaged({
-                        page: pageUi - 1, // backend is 0-based
+                        page: page,
                         size: PAGE_SIZE,
                         q: debouncedQ,
                         tech: tech,
@@ -56,20 +74,54 @@ export default function InternshipsPage() {
                 );
 
                 setPageData(data);
+
+                setItems((prev) => {
+                    if (page === 0) return data.items;
+                    const seen = new Set(prev.map((x) => x.id));
+                    const next = [...prev];
+                    for (const item of data.items) {
+                        if (!seen.has(item.id)) next.push(item);
+                    }
+                    return next;
+                });
+
             } catch (e) {
                 if (e instanceof DOMException && e.name === "AbortError") return;
                 if (e instanceof Error && e.name === "AbortError") return;
                 setError(e instanceof Error ? e.message : String(e));
-                setPageData(null);
+                // setPageData(null);
             } finally {
                 setLoading(false);
             }
         };
         load();
         return () => controller.abort();
-    }, [pageUi, debouncedQ, tech]);
+    }, [page, debouncedQ, tech]);
 
-    if (error) return <p style={{color: "crimson"}}>{error}</p>;
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (!first?.isIntersecting) return;
+
+        if (loadingRef.current) return;
+        if (!hasMoreRef.current) return;
+
+        setPage((p) => p + 1);
+      },
+      {
+        root: null,
+        rootMargin: "300px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
     return (
         <Container maxWidth="lg" sx={{py: 3}}>
@@ -106,9 +158,9 @@ export default function InternshipsPage() {
                 </FormControl>
             </Stack>
 
-            {loading && (
-                <Box sx={{display: "flex", justifyContent: "center", py: 3}}>
-                    <CircularProgress/>
+            {error && (
+                <Box sx={{mb: 2}}>
+                    <Typography color="error">{error}</Typography>
                 </Box>
             )}
 
@@ -123,35 +175,30 @@ export default function InternshipsPage() {
                 </Box>
             )}
 
-            {!loading && pageData && pageData.items.length > 0 && (
-                <>
-                    <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
-                        Showing {pageData.items.length} of {pageData.totalElements}
+            <Box
+                sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: 2,
+                }}
+            >
+                {items.map((internship) => (
+                    <InternshipCard key={internship.id} internship={internship}/>
+                ))}
+            </Box>
+
+            <Box sx={{display: "flex", justifyContent: "center", py: 3}}>
+                {loading && <CircularProgress/>}
+            </Box>
+
+            <div ref={sentinelRef} style={{height: 1}}/>
+
+            {!loading && pageData && !hasMore && items.length > 0 && (
+                <Box sx={{py: 3, textAlign: "center"}}>
+                    <Typography variant="body2" color="text.secondary">
+                        You’ve reached the end.
                     </Typography>
-
-                    <Box
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                            gap: 2,
-                        }}
-                    >
-                        {pageData.items.map((internship) => (
-                            <InternshipCard key={internship.id} internship={internship}/>
-                        ))}
-                    </Box>
-
-                    {pageData.totalPages > 1 && (
-                        <Box sx={{display: "flex", justifyContent: "center", mt: 3}}>
-                            <Pagination
-                                count={pageData.totalPages}
-                                page={pageUi}
-                                onChange={(_, value) => setPageUi(value)}
-                                color="primary"
-                            />
-                        </Box>
-                    )}
-                </>
+                </Box>
             )}
         </Container>
     );

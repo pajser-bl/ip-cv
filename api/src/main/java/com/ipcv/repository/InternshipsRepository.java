@@ -119,8 +119,9 @@ public class InternshipsRepository {
                 JOIN
                     ip_cv.companies c ON c.id = i.company_id
                 """ + where + """
-                ORDER BY i.id DESC
-                LIMIT :limit OFFSET :offset
+                ORDER BY i.id ASC 
+                LIMIT :limit
+                OFFSET :offset
                 """;
 
 
