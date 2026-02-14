@@ -15,7 +15,7 @@ import InternshipCard from "../components/InternshipCard";
 import {getInternshipsPaged, type Internship, type PageDto} from "../api/internshipsApi";
 import {useDebouncedValue} from "../hooks/useDebouncedValue";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 24;
 
 export default function InternshipsPage() {
     const [items, setItems] = useState<Internship[]>([]);
