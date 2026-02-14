@@ -4,12 +4,11 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record MyInternshipDto(
+public record InternshipListItemDto(
         Long id,
         String title,
         String companyName,
-        List<String> technologies,
         String description,
-        String status
+        List<String> technologies
 ) {
 }

@@ -9,15 +9,23 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     headers.set("Authorization", `Bearer ${keycloak.token}`);
     headers.set("Content-Type", "application/json");
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-        ...init,
-        headers,
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${API_BASE_URL}${path}`, {
+            ...init,
+            headers,
+        });
+    } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") throw e;
+        if (e instanceof Error && e.name === "AbortError") throw e;
+        throw e;
+    }
 
     if (!response.ok) {
         const text = await response.text().catch(() => "");
         throw new Error(`HTTP ${response.status} - ${text}`);
     }
 
-    return (await response.json() as T);
+    if (response.status === 204) return undefined as T;
+    return (await response.json()) as T;
 }

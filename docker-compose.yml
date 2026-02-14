@@ -56,6 +56,17 @@ services:
     depends_on:
       - db
 
+#  student-app:
+#    build: student-app
+#    container_name: ip_cv_student_app
+#    restart: always
+#    ports:
+#      - "5173:5173"
+#    networks:
+#      - ip_cv_net
+#    depends_on:
+#      - keycloak
+
 #  api:
 #    build: ./api
 #    container_name: ip_cv_api
