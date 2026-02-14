@@ -5,7 +5,6 @@ import com.ipcv.dto.InternshipDto;
 import com.ipcv.dto.InternshipListItemDto;
 import com.ipcv.dto.PageDto;
 import com.ipcv.repository.InternshipsRepository;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

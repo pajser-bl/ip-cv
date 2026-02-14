@@ -112,8 +112,7 @@ export default function InternshipsPage() {
                 </Box>
             )}
 
-            {/* Content */}
-            {!loading && pageData && pageData.items.length === 0 && (
+            {!loading && pageData?.items.length === 0 && (
                 <Box sx={{py: 6, textAlign: "center"}}>
                     <Typography variant="h6" sx={{mb: 1}}>
                         No internships found
