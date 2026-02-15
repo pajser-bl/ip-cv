@@ -1,11 +1,13 @@
 import {apiFetch} from "./apiFetch";
 
 export type MyInternship = {
-    internshipId: number;
+    id: number;
     title: string;
     companyName: string;
+    description: string;
     technologies: string[];
-    status: "APPLIED" | "ACCEPTED" | "REJECTED";
+    myStatus: "APPLIED" | "ACCEPTED" | "REJECTED" | null;
+    active: boolean;
 };
 
 
@@ -31,8 +33,22 @@ export type PageDto<T> = {
     totalPages: number;
 };
 
-export function getMyInternships() {
-    return apiFetch<MyInternship[]>("/api/students/me/internships");
+export async function getMyInternshipsPaged(
+    params: {
+        page: number,
+        size: number,
+        q?: string,
+        applicationStatus?: "APPLIED" | "ACCEPTED" | "REJECTED"
+    },
+    signal?: AbortSignal
+): Promise<PageDto<MyInternship>> {
+    const searchParams = new URLSearchParams();
+    searchParams.set("scope", "MY");
+    searchParams.set("page", params.page.toString());
+    searchParams.set("size", params.size.toString());
+    if (params.q && params.q.trim() !== "") searchParams.set("q", params.q);
+    if (params.applicationStatus) searchParams.set("applicationStatus", params.applicationStatus);
+    return apiFetch<PageDto<MyInternship>>(`/api/internships?${searchParams.toString()}`, {signal});
 }
 
 export async function getInternshipsPaged(
