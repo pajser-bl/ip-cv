@@ -12,7 +12,6 @@ export default function MyInternshipCard({internship}: Readonly<Props>) {
     const visible = technologies.slice(0, MAX_TECHNOLOGIES);
     const remaining = technologies.length - visible.length;
 
-    // Determine card color based on status
     const getStatusColor = () => {
         switch (internship.myStatus) {
             case "ACCEPTED":
