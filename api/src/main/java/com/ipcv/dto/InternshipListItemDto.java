@@ -9,6 +9,8 @@ public record InternshipListItemDto(
         String title,
         String companyName,
         String description,
-        List<String> technologies
+        List<String> technologies,
+        ApplicationStatus myStatus, // "APPLIED", "ACCEPTED", "REJECTED"
+        Boolean active
 ) {
 }

@@ -1,29 +1,27 @@
 package com.ipcv.api;
 
-import com.ipcv.dto.MyInternshipDto;
-import com.ipcv.repository.InternshipsRepository;
-import java.util.List;
-import org.springframework.security.core.Authentication;
+import com.ipcv.dto.ApplicationStatus;
+import com.ipcv.dto.InternshipListItemDto;
+import com.ipcv.dto.InternshipState;
+import com.ipcv.dto.PageDto;
+import com.ipcv.dto.Scope;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/students")
 public class StudentMeController {
 
-    private final InternshipsRepository internshipsRepository;
-
-    public StudentMeController(InternshipsRepository internshipsRepository) {
-        this.internshipsRepository = internshipsRepository;
-    }
-
     @GetMapping("/me")
-    public Map<String, Object> me(@AuthenticationPrincipal Jwt jwt, Authentication authentication) {
+    public Map<String, Object> me(@AuthenticationPrincipal Jwt jwt) {
         return Map.of(
                 "sub", jwt.getSubject(),
                 "username", jwt.getClaim("preferred_username"),
@@ -32,10 +30,4 @@ public class StudentMeController {
                 "lastName", jwt.getClaim("family_name")
         );
     }
-
-    @GetMapping("/me/internships")
-    public List<MyInternshipDto> myInternships(@AuthenticationPrincipal Jwt jwt) {
-        return internshipsRepository.findByKeycloakId(jwt.getSubject());
-    }
-
 }
