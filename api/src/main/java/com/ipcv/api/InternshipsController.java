@@ -21,10 +21,9 @@ public class InternshipsController {
     public PageDto<InternshipListItemDto> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(required = false) String q,
-            @RequestParam(required = false) String tech
+            @RequestParam(required = false) String q
     ) {
-        return internshipService.listPaged(page, size, q, tech);
+        return internshipService.listPaged(page, size, q);
     }
 
     @GetMapping("/{id}")

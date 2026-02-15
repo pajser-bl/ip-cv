@@ -62,15 +62,13 @@ public class InternshipsRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public PageDto<InternshipListItemDto> findPage(int page, int size, String q, String tech) {
+    public PageDto<InternshipListItemDto> findPage(int page, int size, String q) {
         int limit = Math.clamp(size, 1, 50);
         int offset = Math.max(page, 0) * limit;
 
         String qNorm = (q == null) ? null : q.trim();
-        String techNorm = (tech == null) ? null : tech.trim();
 
         boolean hasQ = qNorm != null && !qNorm.isBlank();
-        boolean hasTech = techNorm != null && !techNorm.isBlank() && !"ALL".equalsIgnoreCase(techNorm);
 
         String where = " WHERE i.active = true ";
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -87,15 +85,6 @@ public class InternshipsRepository {
                     )
                     """;
             params.addValue("q", "%" + q.toLowerCase() + "%");
-        }
-
-        if (hasTech) {
-            where += """
-                    AND (
-                         lower(i.technologies) LIKE :tech
-                    )
-                    """;
-            params.addValue("tech", "%" + tech.toLowerCase() + "%");
         }
 
         String countSql = """

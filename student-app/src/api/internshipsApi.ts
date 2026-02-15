@@ -48,7 +48,6 @@ export async function getInternshipsPaged(
     searchParams.set("page", params.page.toString());
     searchParams.set("size", params.size.toString());
     if (params.q && params.q.trim() !== "") searchParams.set("q", params.q);
-    if (params.tech && params.tech.trim() !== "") searchParams.set("tech", params.tech);
     return apiFetch<PageDto<Internship>>(`/api/internships?${searchParams.toString()}`, {signal});
 }
 

@@ -1,15 +1,11 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
     Container,
     Typography,
     Box,
     TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Stack,
-    CircularProgress
+    CircularProgress,
 } from "@mui/material";
 import InternshipCard from "../components/InternshipCard";
 import {getInternshipsPaged, type Internship, type PageDto} from "../api/internshipsApi";
@@ -26,102 +22,143 @@ export default function InternshipsPage() {
 
     const [q, setQ] = useState("");
     const debouncedQ = useDebouncedValue(q);
-    const [tech, setTech] = useState<string>("ALL");
-    const [page, setPage] = useState(0);
 
-    const sentinelRef = useRef<HTMLDivElement>(null);
-    const loadingRef = useRef(false);
+    const pageRef = useRef(0);
+    const inFlightRef = useRef(false);
     const hasMoreRef = useRef(true);
+    const abortRef = useRef<AbortController | null>(null);
+    const seqRef = useRef(0);
 
-    const hasMore = pageData ? page < pageData?.totalPages - 1 : true;
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        loadingRef.current = loading;
-    }, [loading]);
+    const filtersKey = useMemo(() => debouncedQ.trim(), [debouncedQ]);
 
-    useEffect(() => {
-        hasMoreRef.current = hasMore;
-    }, [hasMore]);
+    const reset = useCallback(() => {
+        // Invalidate any in-flight response
+        seqRef.current += 1;
 
-    const techOptions = useMemo(() => {
-        const set = new Set<string>();
-        for (const i of pageData?.items ?? []) for (const t of i.technologies ?? []) set.add(t);
-        return Array.from(set).sort((a, b) => a.localeCompare(b));
-    }, [items]);
+        abortRef.current?.abort();
+        abortRef.current = null;
 
-    useEffect(() => {
+        pageRef.current = 0;
+        inFlightRef.current = false;
+        hasMoreRef.current = true;
+
         setItems([]);
         setPageData(null);
-        setPage(0);
         setError(null);
-    }, [debouncedQ, tech]);
+        setLoading(false);
+    }, []);
 
     useEffect(() => {
-        const controller = new AbortController();
+        reset();
+    }, [filtersKey, reset]);
 
-        const load = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const data = await getInternshipsPaged({
-                        page: page,
-                        size: PAGE_SIZE,
-                        q: debouncedQ,
-                        tech: tech,
-                    },
-                    controller.signal
-                );
-
-                setPageData(data);
-
-                setItems((prev) => {
-                    if (page === 0) return data.items;
-                    const seen = new Set(prev.map((x) => x.id));
-                    const next = [...prev];
-                    for (const item of data.items) {
-                        if (!seen.has(item.id)) next.push(item);
-                    }
-                    return next;
-                });
-
-            } catch (e) {
-                if (e instanceof DOMException && e.name === "AbortError") return;
-                if (e instanceof Error && e.name === "AbortError") return;
-                setError(e instanceof Error ? e.message : String(e));
-                // setPageData(null);
-            } finally {
-                setLoading(false);
-            }
-        };
-        load();
-        return () => controller.abort();
-    }, [page, debouncedQ, tech]);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (!first?.isIntersecting) return;
-
-        if (loadingRef.current) return;
+    const loadMore = useCallback(async () => {
+        if (inFlightRef.current) return;
         if (!hasMoreRef.current) return;
 
-        setPage((p) => p + 1);
-      },
-      {
-        root: null,
-        rootMargin: "300px",
-        threshold: 0,
-      }
-    );
+        inFlightRef.current = true;
+        setLoading(true);
+        setError(null);
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+        // Abort previous request (if any)
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        const mySeq = seqRef.current;
+        const page = pageRef.current;
+
+        try {
+            const data = await getInternshipsPaged(
+                {
+                    page,
+                    size: PAGE_SIZE,
+                    q: debouncedQ,
+                },
+                controller.signal
+            );
+
+            // Ignore stale responses after reset
+            if (mySeq !== seqRef.current) return;
+
+            setPageData(data);
+
+            setItems((prev) => {
+                if (page === 0) return data.items;
+                const seen = new Set(prev.map((x) => x.id));
+                const next = [...prev];
+                for (const item of data.items) {
+                    if (!seen.has(item.id)) next.push(item);
+                }
+                return next;
+            });
+
+            pageRef.current = page + 1;
+            hasMoreRef.current = data.page < data.totalPages - 1;
+        } catch (e: any) {
+            if (e?.name === "AbortError") return;
+            if (mySeq !== seqRef.current) return;
+
+            setError(e instanceof Error ? e.message : String(e));
+        } finally {
+            if (mySeq === seqRef.current) {
+                setLoading(false);
+                inFlightRef.current = false;
+            }
+        }
+    }, [debouncedQ]);
+
+    useEffect(() => {
+        loadMore();
+    }, [filtersKey, loadMore]);
+
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const first = entries[0];
+                if (!first?.isIntersecting) return;
+                loadMore();
+            },
+            {
+                root: null,
+                rootMargin: "400px 0px 400px 0px",
+                threshold: 0,
+            }
+        );
+
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [loadMore]);
+
+    // Fix for: sentinel visible initially / stays visible after load
+    const maybeFillViewport = useCallback(async () => {
+        const el = sentinelRef.current;
+        if (!el) return;
+
+        // Hard cap prevents runaway loops if backend misbehaves
+        for (let i = 0; i < 10; i++) {
+            const rect = el.getBoundingClientRect();
+            const sentinelVisible = rect.top < window.innerHeight;
+
+            if (!sentinelVisible) return;
+            if (inFlightRef.current) return;
+            if (!hasMoreRef.current) return;
+
+            await loadMore();
+            await new Promise((r) => requestAnimationFrame(() => r(null)));
+        }
+    }, [loadMore]);
+
+    useEffect(() => {
+        maybeFillViewport();
+    }, [items.length, filtersKey, maybeFillViewport]);
+
+    const hasMore = hasMoreRef.current;
 
     return (
         <Container maxWidth="lg" sx={{py: 3}}>
@@ -140,22 +177,6 @@ export default function InternshipsPage() {
                     onChange={(e) => setQ(e.target.value)}
                     fullWidth
                 />
-                <FormControl sx={{minWidth: 220}}>
-                    <InputLabel id="tech-label">Technology</InputLabel>
-                    <Select
-                        labelId="tech-label"
-                        value={tech}
-                        label="Technology"
-                        onChange={(e) => setTech(String(e.target.value))}
-                    >
-                        <MenuItem value="ALL">All</MenuItem>
-                        {techOptions.map((t) => (
-                            <MenuItem key={t} value={t}>
-                                {t}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
             </Stack>
 
             {error && (

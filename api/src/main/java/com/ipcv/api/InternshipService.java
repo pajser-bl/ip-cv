@@ -17,8 +17,8 @@ public class InternshipService {
         return internshipsRepository.findById(id).orElseThrow(() -> new InternshipNotFoundException(id));
     }
 
-    public PageDto<InternshipListItemDto> listPaged(int page, int size, String q, String tech) {
-        return internshipsRepository.findPage(page, size, q, tech);
+    public PageDto<InternshipListItemDto> listPaged(int page, int size, String q) {
+        return internshipsRepository.findPage(page, size, q);
     }
 
 }
